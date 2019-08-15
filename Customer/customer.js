@@ -36,7 +36,7 @@ var connection = mysql.createConnection({
         {
           type: "input",
           name: "choice",
-          message: "What is the ID of the item you would you like to purchase? [Quit with Q]",
+          message: "What is the ID of the item you would you like to buy? [Quit with Q]",
           validate: function(val) {
             return !isNaN(val) || val.toLowerCase() === "q";
           }
@@ -51,7 +51,7 @@ var connection = mysql.createConnection({
           promptCustomerForQuantity(product);
         }
         else {
-          console.log("\nThat item is not in the inventory.");
+          console.log("\nThat item is not in the store.");
           loadProducts();
         }
       });
@@ -63,7 +63,7 @@ var connection = mysql.createConnection({
         {
           type: "input",
           name: "quantity",
-          message: "How many would you like? [Quit with Q]",
+          message: "How many would you like of the product? [Quit with Q]",
           validate: function(val) {
             return val > 0 || val.toLowerCase() === "q";
           }
@@ -74,7 +74,7 @@ var connection = mysql.createConnection({
         var quantity = parseInt(val.quantity);
   
         if (quantity > product.stock_quantity) {
-          console.log("\nInsufficient quantity!");
+          console.log("\nNot enough stock!");
           loadProducts();
         }
         else {
@@ -82,3 +82,31 @@ var connection = mysql.createConnection({
         }
       });
   }
+  
+  function makePurchase(product, quantity) {
+    connection.query(
+      "UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?",
+      [quantity, product.item_id],
+      function(err, res) {
+        console.log("\nSuccessfully purchased " + quantity + " " + product.product_name + "'s!");
+        loadProducts();
+      }
+    );
+  }
+  
+  function checkInventory(choiceId, inventory) {
+    for (var i = 0; i < inventory.length; i++) {
+      if (inventory[i].item_id === choiceId) {
+        return inventory[i];
+      }
+    }
+    return null;
+  }
+  
+  function checkIfShouldExit(choice) {
+    if (choice.toLowerCase() === "q") {
+      console.log("Goodbye!");
+      process.exit(0);
+    }
+  }
+  
